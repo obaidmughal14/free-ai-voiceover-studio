@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free AI Voiceover Studio — English, Urdu, Hindi, Arabic</title>
+<style>
+  :root { --bg:#0f1117; --card:#171a23; --line:#262b3a; --txt:#e8eaf0; --mut:#9aa0b4;
+          --acc:#7c6cff; --acc2:#00d4aa; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--txt); font-family:'Segoe UI',system-ui,sans-serif;
+         min-height:100vh; padding:24px 16px 64px; }
+  .wrap { max-width:860px; margin:0 auto; }
+  header { text-align:center; margin-bottom:28px; }
+  header h1 { font-size:2rem; letter-spacing:.5px; }
+  header h1 span { color:var(--acc); }
+  header p { color:var(--mut); margin-top:8px; }
+  .badge { display:inline-block; background:#12291f; color:var(--acc2); border:1px solid #1d4a38;
+            padding:4px 12px; border-radius:20px; font-size:.8rem; margin-top:10px; }
+  .tabs { display:flex; gap:8px; margin-bottom:20px; }
+  .tab { flex:1; text-align:center; padding:12px; background:var(--card); border:1px solid var(--line);
+         border-radius:10px; cursor:pointer; color:var(--mut); font-weight:600; }
+  .tab.active { background:var(--acc); color:#fff; border-color:var(--acc); }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px; margin-bottom:16px; }
+  .card h3 { margin-bottom:12px; font-size:1.05rem; }
+  label { display:block; color:var(--mut); font-size:.85rem; margin:14px 0 6px; }
+  textarea, input[type=text], select { width:100%; background:#0d0f15; border:1px solid var(--line);
+      color:var(--txt); border-radius:8px; padding:12px; font-size:.95rem; font-family:inherit; }
+  textarea { min-height:130px; resize:vertical; }
+  textarea:focus, select:focus, input:focus { outline:none; border-color:var(--acc); }
+  input[type=range] { width:100%; accent-color:var(--acc); }
+  .langs { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:6px; }
+  .lang { background:#0d0f15; border:1px solid var(--line); border-radius:10px; padding:10px 18px;
+          cursor:pointer; font-size:1rem; color:var(--mut); font-weight:600; }
+  .lang.sel { border-color:var(--acc); color:#fff; box-shadow:0 0 0 1px var(--acc); }
+  .lfrow { display:flex; gap:8px; margin:12px 0 4px; }
+  .lf { background:#0d0f15; border:1px solid var(--line); border-radius:8px; padding:6px 14px;
+        cursor:pointer; font-size:.82rem; color:var(--mut); }
+  .lf.active { border-color:var(--acc2); color:var(--acc2); }
+  .voices { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; margin-top:12px; }
+  .voice { background:#0d0f15; border:1px solid var(--line); border-radius:10px; padding:14px; }
+  .voice.sel { border-color:var(--acc); box-shadow:0 0 0 1px var(--acc); }
+  .voice b { font-size:1rem; } .voice p { color:var(--mut); font-size:.8rem; margin:4px 0 10px; }
+  .btn { background:var(--acc); color:#fff; border:none; border-radius:8px; padding:10px 18px;
+         font-size:.9rem; font-weight:600; cursor:pointer; }
+  .btn:hover { filter:brightness(1.1); } .btn:disabled { opacity:.5; cursor:wait; }
+  .btn.ghost { background:transparent; border:1px solid var(--line); color:var(--txt); }
+  .btn.small { padding:6px 12px; font-size:.8rem; }
+  .btn.big { width:100%; padding:14px; font-size:1.05rem; margin-top:18px;
+              background:linear-gradient(135deg,var(--acc),#4a3fd4); }
+  .block { background:#0d0f15; border:1px solid var(--line); border-radius:10px; padding:14px; margin-bottom:12px; }
+  .block .bhead { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .block .bhead b { color:var(--acc2); }
+  .block textarea { min-height:70px; }
+  .result { display:none; margin-top:16px; background:#0d0f15; border:1px solid #1d4a38;
+            border-radius:10px; padding:14px; }
+  .result.show { display:block; }
+  .result audio { width:100%; margin:8px 0; }
+  .dlrow { display:flex; gap:10px; align-items:center; margin-top:10px; flex-wrap:wrap; }
+  .dlrow select { width:auto; min-width:170px; }
+  .dlrow label { margin:0; }
+  .hint { color:var(--mut); font-size:.85rem; margin:6px 0; line-height:1.6; }
+  #cStatus { color:var(--mut); font-size:.85rem; margin-top:10px; min-height:1.4em; }
+  .sess-item { display:flex; justify-content:space-between; align-items:center; padding:10px 4px;
+               border-bottom:1px solid var(--line); font-size:.9rem; }
+  .sess-item a { color:var(--acc2); text-decoration:none; cursor:pointer; }
+  .count { text-align:right; color:var(--mut); font-size:.78rem; margin-top:4px; }
+  .spinner { display:inline-block; width:14px; height:14px; border:2px solid #fff3; border-top-color:#fff;
+             border-radius:50%; animation:spin .7s linear infinite; vertical-align:-2px; margin-right:6px; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  #loader { position:fixed; inset:0; background:rgba(10,12,18,.96); display:flex; align-items:center;
+            justify-content:center; z-index:50; }
+  #loader.done { display:none; }
+  .lbox { text-align:center; max-width:420px; padding:24px; }
+  .lbox h2 { margin-bottom:10px; } .lbox p { color:var(--mut); font-size:.9rem; margin-bottom:16px; }
+  .bar { height:10px; background:#0d0f15; border:1px solid var(--line); border-radius:6px; overflow:hidden; }
+  .bar > div { height:100%; width:0%; background:linear-gradient(90deg,var(--acc),var(--acc2)); transition:width .2s; }
+  #lmsg { margin-top:10px; color:var(--mut); font-size:.82rem; min-height:1.2em; }
+  #status { text-align:center; color:var(--mut); font-size:.85rem; margin-top:10px; min-height:1.4em; }
+  .err { background:#3a1620; border:1px solid #7a2b3a; color:#ffb3c0; border-radius:8px; padding:10px 14px;
+         margin-top:12px; font-size:.88rem; display:none; }
+  .err.show { display:block; }
+  footer { text-align:center; color:var(--mut); font-size:.8rem; margin-top:32px; line-height:1.7; }
+</style>
+</head>
+<body>
+<div id="loader"><div class="lbox">
+  <h2>🎙️ Loading the AI voice engine…</h2>
+  <p>First visit downloads the voice model (about 90&nbsp;MB). It is cached in your browser afterwards, so this only happens once per language.</p>
+  <div class="bar"><div id="lbar"></div></div>
+  <div id="lmsg">Starting…</div>
+</div></div>
+
+<div class="wrap">
+  <header>
+    <h1>🎙️ Free AI <span>Voiceover Studio</span></h1>
+    <p>Type a script, pick a language and voice, download studio audio.</p>
+    <div class="badge">✓ 100% free &nbsp; ✓ No sign-up &nbsp; ✓ No API keys &nbsp; ✓ 4 languages</div>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="single">Single Voiceover</div>
+    <div class="tab" data-tab="script">Multi-Voice Script</div>
+    <div class="tab" data-tab="sess">This Session</div>
+  </div>
+
+  <div id="tab-single">
+    <div class="card">
+      <h3>Choose a language</h3>
+      <div class="langs" id="langRow"></div>
+      <div class="lfrow" id="accentRow" style="display:none">
+        <div class="lf active" data-a="all">All accents</div>
+        <div class="lf" data-a="en-us">🇺🇸 US</div>
+        <div class="lf" data-a="en-gb">🇬🇧 UK</div>
+      </div>
+      <h3 style="margin-top:14px">Choose an AI voice</h3>
+      <div class="voices" id="voiceGrid"></div>
+    </div>
+    <div class="card" id="cloneCard" style="display:none">
+      <h3>🧬 Clone a voice</h3>
+      <p class="hint">Give me a clear sample of a voice — 10–30 seconds of one person speaking, minimal background noise — and I'll clone it. Saved voices are kept in this browser, under the name you choose.</p>
+      <div class="lfrow">
+        <button class="btn small" id="cRec">🎤 Record</button>
+        <button class="btn small ghost" id="cUp">📁 Upload audio / video</button>
+        <button class="btn small ghost" id="cUrlBtn">🔗 From link</button>
+      </div>
+      <input type="file" id="cFile" accept="audio/*,video/*" style="display:none">
+      <div id="cUrlRow" style="display:none; margin-top:10px">
+        <input type="text" id="cUrl" placeholder="Paste a direct link to an mp3 / wav / mp4 file…">
+        <button class="btn small" id="cFetch" style="margin-top:8px">Fetch audio</button>
+        <p class="hint">Direct file links only — YouTube and video-page links are blocked by those sites, so they won't work here.</p>
+      </div>
+      <div id="cSampleRow" style="display:none; margin-top:12px">
+        <label>Your sample (<span id="cSecs"></span>)</label>
+        <audio id="cSample" controls style="width:100%"></audio>
+        <label>Voice name</label>
+        <input type="text" id="cName" maxlength="30" placeholder="e.g. My narration voice">
+        <button class="btn" id="cSave" style="margin-top:10px">🧬 Save cloned voice</button>
+      </div>
+      <div id="cStatus"></div>
+      <div class="err" id="cErr"></div>
+    </div>
+    <div class="card">
+      <h3>Your script</h3>
+      <textarea id="sText" maxlength="1500" placeholder="Paste your script here…"></textarea>
+      <div class="count"><span id="sCount">0</span> / 1500</div>
+      <button class="btn big" id="sGo">Generate Voiceover</button>
+      <div id="status"></div>
+      <div class="err" id="sErr"></div>
+      <div class="result" id="sResult">
+        <b>✅ Done — <span id="sSecs"></span></b>
+        <audio id="sAudio" controls></audio><br>
+        <div class="dlrow">
+          <label for="sFmt">Format</label>
+          <select id="sFmt"><option value="wav">WAV — best quality</option><option value="mp3">MP3 — small file</option></select>
+          <button class="btn" id="sDl">⬇ Download</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-script" style="display:none">
+    <div class="card">
+      <h3>Multi-voice script <span style="color:var(--mut);font-weight:400;font-size:.85rem">— dialogue, narration + characters</span></h3>
+      <p style="color:var(--mut);font-size:.85rem;margin-bottom:6px">Uses the language selected above.</p>
+      <label>Project title</label>
+      <input type="text" id="pTitle" value="my-voiceover" maxlength="60">
+      <label>Pause between blocks: <span id="pGapVal">400ms</span></label>
+      <input type="range" id="pGap" min="0" max="2000" step="100" value="400">
+      <div id="blocks" style="margin-top:14px"></div>
+      <button class="btn ghost" id="addBlock">+ Add block</button>
+      <button class="btn big" id="pGo">Generate Full Script</button>
+      <div class="err" id="pErr"></div>
+      <div class="result" id="pResult">
+        <b>✅ Done — <span id="pSecs"></span> · <span id="pBlocks"></span> blocks</b>
+        <audio id="pAudio" controls></audio><br>
+        <div class="dlrow">
+          <label for="pFmt">Format</label>
+          <select id="pFmt"><option value="wav">WAV — best quality</option><option value="mp3">MP3 — small file</option></select>
+          <button class="btn" id="pDl">⬇ Download</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-sess" style="display:none">
+    <div class="card"><h3>Generated this session</h3><div id="sessList"><p style="color:var(--mut)">Nothing yet.</p></div></div>
+  </div>
+
+  <footer>
+    The AI voice models run entirely on your device — no audio ever leaves your browser.<br>
+    English: Kokoro-82M neural voices · اردو / हिन्दी / العربية: MMS neural voices · 🧬 Clone your own voice (English) · Downloads: WAV or MP3
+  </footer>
+</div>
+
+<script src="./lame.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.14.0/dist/ort.min.js"></script>
+<script type="module">
+import { KokoroTTS } from 'https://cdn.jsdelivr.net/npm/kokoro-js@1.2.1/+esm';
+import { pipeline as tfPipeline } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
+
+const $ = id => document.getElementById(id);
+const tick = () => new Promise(r => setTimeout(r, 0)); // lets the spinner + progress paint between heavy chunks
+function chunkSentences(sents, maxLen) {
+  const chunks = [];
+  let cur = '';
+  for (const s of sents) {
+    if (cur && (cur + ' ' + s).length > maxLen) { chunks.push(cur); cur = s; }
+    else cur = cur ? cur + ' ' + s : s;
+  }
+  if (cur) chunks.push(cur);
+  return chunks;
+}
+const LANG_LABEL = { 'en-us': 'English (US)', 'en-gb': 'English (UK)' };
+// Kokoro voices: 18 English voices (verified working with kokoro-js@1.2.1).
+// MMS voices: one neural voice per language via transformers.js.
+const LANGUAGES = {
+  en: { label:'🇬🇧 English', engine:'kokoro',
+        preview:'Hello! This is a preview of my voice.', ph:'Paste your script here…',
+        voices:[
+          { id:'af_heart', name:'Heart', lang:'en-us', gender:'Female', note:'Top rated' },
+          { id:'af_bella', name:'Bella', lang:'en-us', gender:'Female', note:'Top rated' },
+          { id:'af_nicole', name:'Nicole', lang:'en-us', gender:'Female' },
+          { id:'af_sarah', name:'Sarah', lang:'en-us', gender:'Female' },
+          { id:'af_kore', name:'Kore', lang:'en-us', gender:'Female' },
+          { id:'af_aoede', name:'Aoede', lang:'en-us', gender:'Female' },
+          { id:'af_nova', name:'Nova', lang:'en-us', gender:'Female' },
+          { id:'af_alloy', name:'Alloy', lang:'en-us', gender:'Female' },
+          { id:'am_fenrir', name:'Fenrir', lang:'en-us', gender:'Male' },
+          { id:'am_michael', name:'Michael', lang:'en-us', gender:'Male' },
+          { id:'am_puck', name:'Puck', lang:'en-us', gender:'Male' },
+          { id:'am_eric', name:'Eric', lang:'en-us', gender:'Male' },
+          { id:'am_liam', name:'Liam', lang:'en-us', gender:'Male' },
+          { id:'bf_emma', name:'Emma', lang:'en-gb', gender:'Female' },
+          { id:'bf_isabella', name:'Isabella', lang:'en-gb', gender:'Female' },
+          { id:'bm_george', name:'George', lang:'en-gb', gender:'Male' },
+          { id:'bm_fable', name:'Fable', lang:'en-gb', gender:'Male' },
+          { id:'bm_lewis', name:'Lewis', lang:'en-gb', gender:'Male' },
+        ]},
+  ur: { label:'🇵🇰 اردو', engine:'mms', model:'obaidasiaone/mms-tts-urd-onnx', quantized:false,
+        preview:'السلام علیکم! یہ میری آواز کا نمونہ ہے', ph:'اپنا اسکرپٹ یہاں لکھیں…',
+        voices:[ { id:'ur1', name:'Ayesha', desc:'Female · Urdu' } ]},
+  hi: { label:'🇮🇳 हिन्दी', engine:'mms', model:'Xenova/mms-tts-hin',
+        preview:'नमस्ते! यह मेरी आवाज़ का नमूना है', ph:'अपनी स्क्रिप्ट यहाँ लिखें…',
+        voices:[ { id:'hi1', name:'Priya', desc:'Female · Hindi' } ]},
+  ar: { label:'🇸🇦 العربية', engine:'mms', model:'Xenova/mms-tts-ara',
+        preview:'مرحبا! هذه عينة من صوتي', ph:'الصق النص هنا…',
+        voices:[ { id:'ar1', name:'Layla', desc:'Female · Arabic' } ]},
+  clone: { label:'🧬 My Voices', engine:'clone',
+        preview:'Hello! This is my cloned voice.', ph:'Paste your script here…',
+        voices:[] },
+};
+let lang = 'en', accent = 'all';
+let selVoice = LANGUAGES.en.voices[0];
+let kokoro = null;
+const mmsPipes = {}, previewCache = {};
+function f32ToB64(a) {
+  const b = new Uint8Array(a.buffer, a.byteOffset, a.byteLength);
+  let s = '';
+  for (let i = 0; i < b.length; i += 8192) s += String.fromCharCode.apply(null, b.subarray(i, i + 8192));
+  return btoa(s);
+}
+function b64ToF32(s) {
+  const bin = atob(s), b = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) b[i] = bin.charCodeAt(i);
+  return new Float32Array(b.buffer);
+}
+let s5pipe = null, xvSession = null, pendingSample = null, recState = null;
+const CLONE_KEY = 'voiceover_clone_voices_v1';
+function loadClones() {
+  try {
+    const raw = localStorage.getItem(CLONE_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw).map(v => ({ id: v.id, name: v.name, desc: 'Cloned voice · English', emb: b64ToF32(v.emb), v: v.v || 1 }));
+  } catch (e) { return []; }
+}
+function persistClones() {
+  try {
+    localStorage.setItem(CLONE_KEY, JSON.stringify(
+      LANGUAGES.clone.voices.map(v => ({ id: v.id, name: v.name, emb: f32ToB64(v.emb), v: v.v || 1 }))
+    ));
+  } catch (e) {}
+}
+LANGUAGES.clone.voices = loadClones();
+let sessionItems = [];
+
+function setLoad(pct, msg) {
+  $('lbar').style.width = Math.round(pct) + '%';
+  if (msg) $('lmsg').textContent = msg;
+}
+function status(msg) { $('status').textContent = msg || ''; }
+function showErr(box, msg) {
+  const el = $(box); el.textContent = '⚠ ' + msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 8000);
+}
+function prog(name) {
+  return (p) => {
+    if (p.status === 'progress' && p.total) setLoad(100 * p.loaded / p.total, 'Downloading the ' + name + ' voice model… ' + Math.round(100 * p.loaded / p.total) + '%');
+    else if (p.status === 'initiate') setLoad(0, 'Downloading the ' + name + ' voice model…');
+    else if (p.status === 'done') setLoad(100, 'Ready!');
+  };
+}
+async function getKokoro() {
+  if (kokoro) return kokoro;
+  $('loader').classList.remove('done');
+  kokoro = await KokoroTTS.from_pretrained('onnx-community/Kokoro-82M-v1.0-ONNX', {
+    dtype: 'q8', device: 'wasm', progress_callback: prog('English')
+  });
+  $('loader').classList.add('done');
+  return kokoro;
+}
+async function getMMS(code) {
+  if (!mmsPipes[code]) {
+    const L = LANGUAGES[code];
+    $('loader').classList.remove('done');
+    mmsPipes[code] = await tfPipeline('text-to-speech', L.model, {
+      quantized: L.quantized !== false, progress_callback: prog(LANGUAGES[code].label.replace(/[^A-Za-z]/g, '') || code)
+    });
+    $('loader').classList.add('done');
+  }
+  return mmsPipes[code];
+}
+getKokoro().catch(e => { $('lmsg').textContent = 'Failed to load the voice model: ' + e.message; });
+
+function splitSentences(text) {
+  const parts = text.split(/(?<=[.!?…:;])\s+|\n+/).map(s => s.trim()).filter(Boolean);
+  const merged = [];
+  for (const s of parts) {
+    if (merged.length && merged[merged.length - 1].length < 40) merged[merged.length - 1] += ' ' + s;
+    else merged.push(s);
+  }
+  return merged;
+}
+function normalize(pcm) {
+  let peak = 0;
+  for (let i = 0; i < pcm.length; i++) { const a = Math.abs(pcm[i]); if (a > peak) peak = a; }
+  if (peak > 0.01) { const g = 0.92 / peak; for (let i = 0; i < pcm.length; i++) pcm[i] *= g; }
+  return pcm;
+}
+function concat(parts) {
+  const total = parts.reduce((n, p) => n + p.length, 0);
+  const out = new Float32Array(total);
+  let o = 0;
+  for (const p of parts) { out.set(p, o); o += p.length; }
+  return out;
+}
+function silence(sr, ms) { return new Float32Array(Math.floor(sr * ms / 1000)); }
+
+async function getS5() {
+  if (s5pipe) return s5pipe;
+  $('loader').classList.remove('done');
+  s5pipe = await tfPipeline('text-to-speech', 'Xenova/speecht5_tts', { progress_callback: prog('Cloned-voice') });
+  $('loader').classList.add('done');
+  return s5pipe;
+}
+async function synthText(text, code, voice, onTick) {
+  // Fewer, bigger chunks = less per-call overhead (faster). tick() between chunks
+  // hands the main thread back so the spinner and progress text keep updating —
+  // the page never looks frozen while the AI is working.
+  const chunks = chunkSentences(splitSentences(text), 450);
+  const parts = [];
+  let sr = 24000;
+  const L = LANGUAGES[code];
+  const gen = L.engine === 'kokoro' ? await getKokoro() : L.engine === 'mms' ? await getMMS(code) : await getS5();
+  for (let i = 0; i < chunks.length; i++) {
+    await tick();
+    const out = L.engine === 'kokoro' ? await gen.generate(chunks[i], { voice: voice.id })
+      : L.engine === 'clone' ? await gen(chunks[i], { speaker_embeddings: voice.emb })
+      : await gen(chunks[i]);
+    sr = out.sampling_rate;
+    parts.push(out.audio);
+    if (onTick) onTick(i + 1, chunks.length);
+  }
+  return { pcm: normalize(concat(parts)), sr };
+}
+function encodeWav(pcm, sr) {
+  const n = pcm.length, buffer = new ArrayBuffer(44 + n * 2), v = new DataView(buffer);
+  const ws = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  ws(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); ws(8, 'WAVE');
+  ws(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, sr, true); v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+  ws(36, 'data'); v.setUint32(40, n * 2, true);
+  for (let i = 0; i < n; i++) {
+    const s = Math.max(-1, Math.min(1, pcm[i]));
+    v.setInt16(44 + i * 2, Math.round(s * 32767), true);
+  }
+  return new Blob([buffer], { type: 'audio/wav' });
+}
+async function encodeMp3(pcm, sr, onProg) {
+  if (typeof lamejs === 'undefined') throw new Error('MP3 encoder did not load — pick WAV or refresh the page.');
+  const enc = new lamejs.Mp3Encoder(1, sr, 128);
+  const data = new Int16Array(pcm.length);
+  for (let i = 0; i < pcm.length; i++) data[i] = Math.max(-1, Math.min(1, pcm[i])) * 32767;
+  const out = [];
+  for (let i = 0; i < data.length; i += 1152) {
+    const mp3 = enc.encodeBuffer(data.subarray(i, i + 1152));
+    if (mp3.length) out.push(new Uint8Array(mp3));
+    if (i % (1152 * 200) === 0) { if (onProg) onProg(i / data.length); await tick(); }
+  }
+  const end = enc.flush();
+  if (end.length) out.push(new Uint8Array(end));
+  if (onProg) onProg(1);
+  return new Blob(out, { type: 'audio/mpeg' });
+}
+let lastSingle = null, lastScript = null;
+async function downloadLast(btn, errBox, fmtId, last) {
+  if (!last) return;
+  const fmt = $(fmtId).value;
+  const old = btn.innerHTML;
+  btn.disabled = true;
+  try {
+    let blob, ext;
+    if (fmt === 'mp3') {
+      btn.innerHTML = '<span class="spinner"></span>Encoding MP3…';
+      await tick();
+      blob = await encodeMp3(last.pcm, last.sr, p => { btn.innerHTML = '<span class="spinner"></span>Encoding MP3… ' + Math.round(p * 100) + '%'; });
+      ext = 'mp3';
+    } else {
+      blob = encodeWav(last.pcm, last.sr);
+      ext = 'wav';
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = last.base + '.' + ext;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  } catch (e) { showErr(errBox, e.message); }
+  btn.disabled = false; btn.innerHTML = old;
+}
+/* ---------- voice cloning ---------- */
+function cStatus(msg) { $('cStatus').textContent = msg || ''; }
+async function decodeTo16kMono(arrayBuffer) {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  const ac = new AC();
+  let buf;
+  try { buf = await ac.decodeAudioData(arrayBuffer); }
+  catch (e) { try { await ac.close(); } catch (_) {} throw new Error('Could not read that audio. Try a WAV or MP3 file.'); }
+  const off = new OfflineAudioContext(1, Math.max(1, Math.ceil(buf.duration * 16000)), 16000);
+  const src = off.createBufferSource(); src.buffer = buf; src.connect(off.destination); src.start();
+  const out = await off.startRendering();
+  try { await ac.close(); } catch (_) {}
+  return out.getChannelData(0);
+}
+function setSample(pcm) {
+  pendingSample = pcm;
+  $('cSecs').textContent = (pcm.length / 16000).toFixed(0) + 's';
+  $('cSample').src = URL.createObjectURL(encodeWav(pcm, 16000));
+  $('cSampleRow').style.display = '';
+  cStatus('');
+}
+function prepSample(pcm) {
+  if (pcm.length < 16000 * 2) throw new Error('Sample too short — use at least 3 seconds of speech.');
+  if (pcm.length > 16000 * 60) pcm = pcm.subarray(0, 16000 * 60);
+  let peak = 0;
+  for (let i = 0; i < pcm.length; i += 7) { const a = Math.abs(pcm[i]); if (a > peak) peak = a; }
+  if (peak > 0.01) { const g = 0.9 / peak; for (let i = 0; i < pcm.length; i++) pcm[i] *= g; }
+  return pcm;
+}
+async function handleSampleFile(file) {
+  if (!file) return;
+  cStatus('Reading file…'); await tick();
+  try {
+    const ab = await file.arrayBuffer();
+    cStatus('Decoding audio…'); await tick();
+    setSample(prepSample(await decodeTo16kMono(ab)));
+  } catch (e) { showErr('cErr', e.message); cStatus(''); }
+}
+async function toggleRecord() {
+  const btn = $('cRec');
+  if (recState) {
+    clearInterval(recState.timer);
+    recState.rec.stop();
+    recState.stream.getTracks().forEach(t => t.stop());
+    recState = null;
+    btn.innerHTML = '🎤 Record';
+    return;
+  }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const rec = new MediaRecorder(stream);
+    const chunks = [];
+    rec.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+    rec.onstop = async () => {
+      cStatus('Processing recording…'); await tick();
+      try {
+        const ab = await new Blob(chunks, { type: rec.mimeType }).arrayBuffer();
+        setSample(prepSample(await decodeTo16kMono(ab)));
+      } catch (e) { showErr('cErr', e.message); cStatus(''); }
+    };
+    rec.start();
+    const t0 = Date.now();
+    const timer = setInterval(() => {
+      btn.innerHTML = '⏹ Stop (' + Math.floor((Date.now() - t0) / 1000) + 's)';
+    }, 500);
+    btn.innerHTML = '⏹ Stop (0s)';
+    recState = { rec, stream, timer };
+    cStatus('Recording… speak clearly for 10–30 seconds, then tap Stop.');
+  } catch (e) {
+    showErr('cErr', 'Microphone unavailable. Allow access or upload a file instead.');
+  }
+}
+async function getEncoder() {
+  if (xvSession) return xvSession;
+  if (typeof ort === 'undefined') throw new Error('Voice encoder failed to load. Check your connection and refresh the page.');
+  cStatus('Loading voice encoder (one-time download, ~17MB)…'); await tick();
+  xvSession = await ort.InferenceSession.create(
+    'https://huggingface.co/obaidasiaone/xvect-tdnn-voxceleb-onnx/resolve/main/model_v3.onnx',
+    { executionProviders: ['wasm'] }
+  );
+  return xvSession;
+}
+async function encodeVoice(pcm, onTick) {
+  const session = await getEncoder();
+  const total = Math.floor(pcm.length / 16000);
+  // Score each 1s window by energy, so the fingerprint is built from actual
+  // speech rather than silence/pauses at the start or end of the sample.
+  const scored = [];
+  for (let i = 0; i < total; i++) {
+    const w = pcm.subarray(i * 16000, (i + 1) * 16000);
+    let e = 0;
+    for (let k = 0; k < w.length; k += 8) e += w[k] * w[k];
+    scored.push([e / (w.length / 8), i]);
+  }
+  scored.sort((a, b) => b[0] - a[0]);
+  const peak = scored[0][0] || 1;
+  const use = scored.filter(s => s[0] > peak * 0.02).slice(0, 40).map(s => s[1]);
+  if (!use.length) use.push(scored[0][1]);
+  const acc = new Float32Array(512);
+  for (let i = 0; i < use.length; i++) {
+    const w = pcm.subarray(use[i] * 16000, (use[i] + 1) * 16000);
+    const out = await session.run({ input_values: new ort.Tensor('float32', w, [1, 16000]) });
+    const e = out.embeddings.data;
+    for (let j = 0; j < 512; j++) acc[j] += e[j] / use.length;
+    if (onTick) onTick(i + 1, use.length);
+    await tick();
+  }
+  let n = 0;
+  for (let j = 0; j < 512; j++) n += acc[j] * acc[j];
+  n = Math.sqrt(n) || 1;
+  for (let j = 0; j < 512; j++) acc[j] /= n;
+  return { emb: acc, speechSecs: use.length, totalSecs: total };
+}
+$('cSave').onclick = async () => {
+  const name = $('cName').value.trim();
+  if (!pendingSample) { showErr('cErr', 'Add a voice sample first — record, upload or use a link.'); return; }
+  if (!name) { showErr('cErr', 'Give your voice a name first.'); return; }
+  const btn = $('cSave'); btn.disabled = true;
+  try {
+    const { emb, speechSecs, totalSecs } = await encodeVoice(pendingSample, (d, n) => cStatus(`Analyzing voice… ${d}/${n}`));
+    const v = { id: 'c' + Date.now(), name, desc: 'Cloned voice · English', emb, v: 2 };
+    LANGUAGES.clone.voices.push(v);
+    persistClones();
+    selVoice = v;
+    renderCloneVoices(); renderBlocks();
+    pendingSample = null;
+    $('cSampleRow').style.display = 'none'; $('cName').value = '';
+    const qualityNote = speechSecs < 8
+      ? ` Only ${speechSecs}s of clear speech detected in your ${totalSecs}s sample — for a closer match, re-record 15–30s of clear, close-mic speech with no background noise or music.`
+      : '';
+    cStatus(`✅ “${name}” saved — select it above and hit Generate.${qualityNote}`);
+  } catch (e) { showErr('cErr', e.message); cStatus(''); }
+  btn.disabled = false;
+};
+function addSession(name, url, secs) {
+  sessionItems.unshift({ name, url, secs });
+  $('sessList').innerHTML = sessionItems.map((f, i) =>
+    `<div class="sess-item"><span>🎧 ${f.name} <small style="color:var(--mut)">(${f.secs}s)</small></span><a data-i="${i}">▶ Play</a></div>`
+  ).join('');
+  document.querySelectorAll('#sessList a').forEach(a => a.onclick = () => new Audio(sessionItems[+a.dataset.i].url).play());
+}
+
+function voiceDesc(v) {
+  if (v.desc) return v.desc;
+  return v.gender + ' · ' + LANG_LABEL[v.lang] + (v.note ? ' · ' + v.note : '');
+}
+function renderLangs() {
+  $('langRow').innerHTML = Object.entries(LANGUAGES).map(([c, L]) =>
+    `<div class="lang ${c === lang ? 'sel' : ''}" data-l="${c}">${L.label}</div>`).join('');
+  document.querySelectorAll('#langRow .lang').forEach(el => el.onclick = () => setLang(el.dataset.l));
+  $('accentRow').style.display = lang === 'en' ? '' : 'none';
+}
+function setLang(code) {
+  lang = code;
+  selVoice = LANGUAGES[code].voices[0];
+  renderLangs(); renderVoices(); renderBlocks();
+  $('sText').placeholder = LANGUAGES[code].ph;
+  $('cloneCard').style.display = code === 'clone' ? '' : 'none';
+  if (code !== 'en' && code !== 'clone') getMMS(code).catch(e => showErr('sErr', e.message));
+}
+function renderVoices() {
+  if (lang === 'clone') { renderCloneVoices(); return; }
+  let list = LANGUAGES[lang].voices;
+  if (lang === 'en' && accent !== 'all') list = list.filter(v => v.lang === accent);
+  if (!list.find(v => v.id === selVoice.id)) selVoice = list[0];
+  $('voiceGrid').innerHTML = list.map(v => `
+    <div class="voice ${v.id === selVoice.id ? 'sel' : ''}" data-v="${v.id}">
+      <b>${v.name}</b><p>${voiceDesc(v)}</p>
+      <button class="btn small ghost pv">▶ Preview</button>
+      <button class="btn small pick">Use voice</button>
+    </div>`).join('');
+  document.querySelectorAll('.voice').forEach(el => {
+    const v = LANGUAGES[lang].voices.find(x => x.id === el.dataset.v);
+    el.querySelector('.pick').onclick = () => {
+      selVoice = v;
+      document.querySelectorAll('.voice').forEach(x => x.classList.remove('sel'));
+      el.classList.add('sel');
+    };
+    el.querySelector('.pv').onclick = async (e) => {
+      const b = e.target; b.disabled = true; const old = b.textContent; b.textContent = '…';
+      try {
+        const key = lang + ':' + v.id;
+        if (!previewCache[key]) {
+          const { pcm, sr } = await synthText(LANGUAGES[lang].preview, lang, v);
+          previewCache[key] = URL.createObjectURL(encodeWav(pcm, sr));
+        }
+        new Audio(previewCache[key]).play();
+      } catch (err) { showErr('sErr', err.message); }
+      b.disabled = false; b.textContent = old;
+    };
+  });
+}
+function renderCloneVoices() {
+  const list = LANGUAGES.clone.voices;
+  if (!list.find(v => v.id === (selVoice && selVoice.id))) selVoice = list[0];
+  const stale = list.some(v => v.v !== 2);
+  $('voiceGrid').innerHTML = (stale
+    ? `<p class="hint">⚠ Your saved voice was created with the old analyser — delete it and clone again for a noticeably closer match.</p>` : '')
+    + (list.length ? list.map(v => `
+    <div class="voice ${selVoice && v.id === selVoice.id ? 'sel' : ''}" data-v="${v.id}">
+      <b>🧬 ${v.name.replace(/</g, '&lt;')}</b><p>${v.desc}</p>
+      <button class="btn small ghost pv">▶ Preview</button>
+      <button class="btn small pick">Use voice</button>
+      <button class="btn small ghost del">🗑</button>
+    </div>`).join('')
+    : `<p class="hint">No cloned voices yet — create your first one with the 🧬 panel below, then it will appear here.</p>`;
+  document.querySelectorAll('#voiceGrid .voice').forEach(el => {
+    const v = list.find(x => x.id === el.dataset.v);
+    if (!v) return;
+    el.querySelector('.pick').onclick = () => {
+      selVoice = v;
+      document.querySelectorAll('#voiceGrid .voice').forEach(x => x.classList.remove('sel'));
+      el.classList.add('sel');
+    };
+    el.querySelector('.pv').onclick = async (e) => {
+      const b = e.target; b.disabled = true; const old = b.textContent; b.textContent = '…';
+      try {
+        const key = 'clone:' + v.id;
+        if (!previewCache[key]) {
+          const { pcm, sr } = await synthText(LANGUAGES.clone.preview, 'clone', v);
+          previewCache[key] = URL.createObjectURL(encodeWav(pcm, sr));
+        }
+        new Audio(previewCache[key]).play();
+      } catch (err) { showErr('sErr', err.message); }
+      b.disabled = false; b.textContent = old;
+    };
+    el.querySelector('.del').onclick = () => {
+      LANGUAGES.clone.voices = LANGUAGES.clone.voices.filter(x => x.id !== v.id);
+      persistClones();
+      delete previewCache['clone:' + v.id];
+      renderCloneVoices(); renderBlocks();
+      cStatus(`🗑 “${v.name}” deleted.`);
+    };
+  });
+}
+renderLangs(); renderVoices();
+document.querySelectorAll('#accentRow .lf').forEach(b => b.onclick = () => {
+  accent = b.dataset.a;
+  document.querySelectorAll('#accentRow .lf').forEach(x => x.classList.toggle('active', x === b));
+  renderVoices();
+});
+
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+  t.classList.add('active');
+  ['single', 'script', 'sess'].forEach(k => $('tab-' + k).style.display = k === t.dataset.tab ? '' : 'none');
+});
+$('sText').oninput = e => $('sCount').textContent = e.target.value.length;
+$('pGap').oninput = e => $('pGapVal').textContent = e.target.value + 'ms';
+
+async function runGen(btn, fn) {
+  const old = btn.innerHTML; btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Generating…';
+  await tick();
+  try { await fn(); } catch (e) { showErr(btn.id === 'sGo' ? 'sErr' : 'pErr', e.message); }
+  btn.disabled = false; btn.innerHTML = old; status('');
+}
+
+$('sGo').onclick = () => runGen($('sGo'), async () => {
+  const text = $('sText').value.trim();
+  if (!text) { showErr('sErr', 'Type your script first.'); return; }
+  if (lang === 'clone' && !selVoice) { showErr('sErr', 'Clone a voice first with the 🧬 panel below.'); return; }
+  const { pcm, sr } = await synthText(text, lang, selVoice, (d, n) => status(`Rendering… part ${d}/${n}`));
+  lastSingle = { pcm, sr, base: 'voiceover-' + lang + '-' + selVoice.id };
+  const url = URL.createObjectURL(encodeWav(pcm, sr));
+  const secs = (pcm.length / sr).toFixed(1);
+  $('sResult').classList.add('show');
+  $('sSecs').textContent = secs + 's · ' + selVoice.name;
+  $('sAudio').src = url;
+  addSession(lastSingle.base + '.wav', url, secs);
+});
+
+function voiceOptions() {
+  return LANGUAGES[lang].voices.map(v => `<option value="${v.id}">${v.name} — ${voiceDesc(v)}</option>`).join('');
+}
+function blockHTML(i) {
+  return `<div class="block" data-i="${i}">
+    <div class="bhead"><b>Block ${i + 1}</b><button class="btn small ghost rm">✕</button></div>
+    <label>Voice</label><select class="bv">${voiceOptions()}</select>
+    <label>Text</label><textarea class="bt" maxlength="800" placeholder="${LANGUAGES[lang].ph}"></textarea>
+  </div>`;
+}
+function renderBlocks() {
+  const n = document.querySelectorAll('#blocks .block').length || 2;
+  $('blocks').innerHTML = Array.from({ length: n }, (_, i) => blockHTML(i)).join('');
+  bindRm();
+}
+function bindRm() {
+  document.querySelectorAll('#blocks .rm').forEach(b => b.onclick = () => {
+    if (document.querySelectorAll('#blocks .block').length > 1) b.closest('.block').remove();
+  });
+}
+$('addBlock').onclick = () => {
+  if (document.querySelectorAll('#blocks .block').length >= 8) { showErr('pErr', 'Maximum 8 blocks.'); return; }
+  $('blocks').insertAdjacentHTML('beforeend', blockHTML(document.querySelectorAll('#blocks .block').length));
+  bindRm();
+};
+renderBlocks();
+
+$('pGo').onclick = () => runGen($('pGo'), async () => {
+  const blocks = [...document.querySelectorAll('#blocks .block')].map(el => ({
+    voice: LANGUAGES[lang].voices.find(v => v.id === el.querySelector('.bv').value),
+    text: el.querySelector('.bt').value.trim()
+  })).filter(b => b.text);
+  if (!blocks.length) { showErr('pErr', 'Add text to at least one block.'); return; }
+  if (blocks.some(b => !b.voice)) { showErr('pErr', 'Clone a voice first with the 🧬 My Voices panel.'); return; }
+  const gap = +$('pGap').value, parts = [];
+  let sr = 24000, di = 0;
+  for (const b of blocks) {
+    const r = await synthText(b.text, lang, b.voice, (d, n) => status(`Block ${di + 1}/${blocks.length} — part ${d}/${n}`));
+    sr = r.sr;
+    if (di > 0 && gap > 0) parts.push(silence(sr, gap));
+    parts.push(r.pcm);
+    di++;
+  }
+  const pcm = concat(parts);
+  const title = ($('pTitle').value.trim() || 'voiceover').replace(/[^a-z0-9]+/gi, '-').toLowerCase();
+  lastScript = { pcm, sr, base: title + '-' + lang };
+  const url = URL.createObjectURL(encodeWav(pcm, sr));
+  const secs = (pcm.length / sr).toFixed(1);
+  $('pResult').classList.add('show');
+  $('pSecs').textContent = secs + 's'; $('pBlocks').textContent = blocks.length;
+  $('pAudio').src = url;
+  addSession(lastScript.base + '.wav', url, secs);
+});
+$('sDl').onclick = () => downloadLast($('sDl'), 'sErr', 'sFmt', lastSingle);
+$('pDl').onclick = () => downloadLast($('pDl'), 'pErr', 'pFmt', lastScript);
+$('cRec').onclick = toggleRecord;
+$('cUp').onclick = () => $('cFile').click();
+$('cFile').onchange = e => handleSampleFile(e.target.files[0]);
+$('cUrlBtn').onclick = () => { $('cUrlRow').style.display = $('cUrlRow').style.display === 'none' ? '' : 'none'; };
+$('cFetch').onclick = async () => {
+  const url = $('cUrl').value.trim();
+  if (!url) { showErr('cErr', 'Paste a link first.'); return; }
+  const btn = $('cFetch'); btn.disabled = true;
+  try {
+    cStatus('Fetching…'); await tick();
+    const r = await fetch(url);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const ab = await r.arrayBuffer();
+    cStatus('Decoding audio…'); await tick();
+    setSample(prepSample(await decodeTo16kMono(ab)));
+  } catch (e) { showErr('cErr', 'Could not fetch that link — the site may block direct access. Try uploading the file instead.'); cStatus(''); }
+  btn.disabled = false;
+};
+</script>
+</body>
+</html>
