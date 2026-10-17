@@ -66,12 +66,13 @@ Upload `index.html` + `lame.min.js` to Netlify, Vercel, Cloudflare Pages, or Hug
 ```
 free-ai-voiceover-studio/
 ├── index.html      # The entire app — UI + all logic (single file)
-├── lame.min.js     # MP3 encoder (lamejs, runs in-browser)
 ├── README.md       # This file
 └── LICENSE         # MIT
 ```
 
 There is no build step, no `node_modules`, no backend. `index.html` is the app.
+The ONNX runtime and MP3 encoder load from CDN (jsDelivr); all voice AI models
+download from Hugging Face on first use and are cached by the browser.
 
 ## 🛠️ Technical notes
 
